@@ -19,6 +19,7 @@ entry="$(fd . "$PASSWORD_STORE_DIR" | grep '.*.gpg$' | \
 [ -z $entry ] && exit 1
 pass_entry=$(echo $entry | sed -e 's/.gpg$//')
 is_card=$(echo $entry | grep -c "credit-card")
+is_otp=$(echo $entry | grep -c "otp")
 
 if [ $is_card -ne 0 ]; then
         field="$(printf "Card number\nValid until\nCVV\n" | \
@@ -26,18 +27,34 @@ if [ $is_card -ne 0 ]; then
 
         case $field in
         "Card number")
-                content="$(pass show "$pass_entry" -c1 &)"
+                content="$(pass show "$pass_entry" | sed -n '1p')"
                 ;;
         "Valid until")
-                content="$(pass show "$pass_entry" -c2 &)"
+                content="$(pass show "$pass_entry" | sed -n '2p')"
                 ;;
         "CVV")
-                content="$(pass show "$pass_entry" -c3 &)"
+                content="$(pass show "$pass_entry" | sed -n '3p')"
                 ;;
         *)
                 exit 0
                 ;;
         esac
+
+elif [ $is_otp -ne 0 ]; then
+	field="$(printf "One-time password\nOTP link\n" | \
+	    dmenu -p "Copy which field?" -l 2)"
+
+	case $field in
+	"One-time password")
+		content="$(pass otp show "$pass_entry")"
+		;;
+	"OTP link")
+		content="$(pass show "$pass_entry")"
+		;;
+	*)
+		exit 0
+		;;
+	esac
 
 else
         field="$(printf "Password\nUsername\n" | \
@@ -45,14 +62,15 @@ else
 
         case $field in
         "Password" )
-                content="$(pass show "$pass_entry" -c1 &)"
+                content="$(pass show "$pass_entry" | sed -n '1p')"
                 ;;
         "Username" )
-                content="$(pass show "$pass_entry" -c2 &)"
+                content="$(pass show "$pass_entry" | sed -n '2p')"
                 ;;
         *)
                 exit 0
                 ;;
         esac
 fi
-}
+
+echo -n "$content" | xclip -selection clipboard
