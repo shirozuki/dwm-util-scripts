@@ -1,0 +1,142 @@
+#!/bin/sh
+
+invalidopt() {
+        echo "$0: invalid option $2"
+        exit 127
+}
+
+displaysel() {
+        for i in dmenu ls fd awk wc; do
+            ! command -v $i >/dev/null 2>&1 && \
+            notify-send -i \
+            "${XDG_CONFIG_HOME:-$HOME/.config}/dunst/critical.png" \
+            "Error" "Executable \`$i\` not found." && \
+            exit 127
+        done
+
+        count="$(ls $XDG_DATA_HOME/display-conf | wc -l)"
+        layout=$(fd . "$XDG_DATA_HOME/display-conf" | awk -F / '{print $NF}' | \
+            dmenu -i -l $count -p "Select display configuration: ")
+        if [ ! -z "$layout" ]; then
+                /bin/sh -c "$XDG_DATA_HOME/display-conf/$layout"
+                dwmctl -f setwp -c set
+        fi
+}
+
+kbsetup() {
+        xset r rate "$KB_AUTO_REPEAT_DELAY" "$KB_REPEAT_RATE"
+        setxkbmap "$KB_MAP"
+        setxkbmap -option caps:escape
+}
+
+powermgr() {
+        case "$1" in
+        lock)
+                if command -v gpgconf >/dev/null 2>&1; then
+                        gpgconf --kill gpg-agent
+                fi
+                slock
+                ;;
+        shutdown)
+                option="$(printf "%s\n%s" "No" "Yes" | \
+                    dmenu -i -p "Shutdown?")"
+                [ "$option" = "Yes" ] && poweroff
+                ;;
+        restart)
+                option="$(printf "%s\n%s" "No" "Yes" | \
+                    dmenu -i -p "Reboot?")"
+                [ "$option" = "Yes" ] && reboot
+                ;;
+        *)
+                invalidopt $1
+                ;;
+        esac
+}
+
+setwp() {
+        [ -z "$WALLPAPER_DIRECTORY" ] && \
+            notify-send -i \
+            "${XDG_CONFIG_HOME:-$HOME/.config}/dunst/critical.png" \
+            "Error" "Variable WALLPAPER_DIRECTORY not set." && \
+            exit 1
+        for i in dmenu awk fd xwallpaper; do
+                ! command -v $i >/dev/null 2>&1 && \
+                    notify-send -i \
+                    "${XDG_CONFIG_HOME:-$HOME/.config}/dunst/critical.png" \
+                    "Error" "Executable \`$i\` not found." && \
+                exit 127
+        done
+
+        case "$1" in
+        set)
+                xwallpaper --center "$CURRENT_WALLPAPER" >/dev/null 2>&1
+                ;;
+        select)
+                wallpaper=$(fd . -t file -e png -e jpg -e jpeg \
+                    -e tiff "$WALLPAPER_DIRECTORY" | \
+                    awk -F '/' '{print $(NF-1)"/"$NF}' | \
+                    dmenu -i -l 30 -p "Choose wallpaper: ")
+                ;;
+        esac
+
+        [ ! -f "$WALLPAPER_DIRECTORY/$wallpaper" ] && exit 127
+        [ ! -f "$DWM_SETTINGS" ] && touch "$DWM_SETTINGS"
+
+        if grep -q "CURRENT_WALLPAPER=" "$DWM_SETTINGS"; then
+                sed -i \
+                    's|^export CURRENT_WALLPAPER=.*|export CURRENT_WALLPAPER='"$WALLPAPER_DIRECTORY"'/'"$wallpaper"'|' \
+                    $DWM_SETTINGS
+        else
+                echo "export CURRENT_WALLPAPER=$WALLPAPER_DIRECTORY/$wallpaper" >> \
+                    $DWM_SETTINGS
+        fi
+
+        export CURRENT_WALLPAPER=$WALLPAPER_DIRECTORY/$wallpaper
+        dwmctl -f setwp -c set
+}
+
+backlightctl() {
+        case $1 in
+                up)
+                        xbacklight +5
+                        ;;
+                down)
+                        xbacklight -5
+                        ;;
+                *)
+                        invalidopt $1
+                        ;;
+        esac
+}
+
+volumectl() {
+        case $1 in
+                up)
+                        amixer -M sset Master 1%+
+                        ;;
+                down)
+                        amixer -M sset Master 1%-
+                        ;;
+                toggle)
+                        amixer set Master toggle
+                        ;;
+                *)
+                        invalidopt $1
+                        ;;
+        esac
+
+        echo "mb-volume" > "$MODBAR_PIPE_PATH"
+}
+
+while getopts f:c: option; do
+        case $option in
+                f)
+                        function=${OPTARG}
+                        ;;
+                c)
+                        command=${OPTARG}
+                        ;;
+        esac
+done
+
+$function $command
