@@ -2,9 +2,9 @@
 
 A small collection of POSIX shell scripts providing various desktop
 functionalities, conveniently bound to keypresses in my
-[custom dwm build](https://gitlab.dobrowolski.dev/dwm/dwm.git). `dwmctl` is
-additionally integrated with [modbar](https://gitlab.dobrowolski.dev/dwm/modbar.git)
-and its default [shell modules](https://gitlab.dobrowolski.dev/dwm/modbar-shell-modules.git).
+[custom dwm build](https://github.com/shirozuki/dwm.git). `dwmctl` is
+additionally integrated with [modbar](https://github.com/shirozuki/modbar.git)
+and its default [shell modules](https://github.com/shirozuki/modbar-shell-modules.git).
 
 ## Scripts
  - **dwmctl** — desktop control hub: display configuration, power management
