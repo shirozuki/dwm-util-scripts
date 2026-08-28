@@ -8,13 +8,14 @@ for i in dmenu awk fd bluetoothctl; do
             exit 127
 done
 
-count=$(ls -1 $XDG_DATA_HOME/bluetooth-devices | wc -l)
-device=$(fd . $XDG_DATA_HOME/bluetooth-devices | \
+devicedir="$XDG_DATA_HOME/bluetooth-devices"
+count=$(ls -1 "$devicedir" | wc -l)
+device=$(fd . "$devicedir" | \
     awk -F / '{print $NF}' | \
-    dmenu -i -l $count -p "Choose device: ")
+    dmenu -i -l "$count" -p "Choose device: ")
 
 [ -z "$device" ] && exit 0
-mac=$(cat "$BLUETOOTH_DEVICE_DIR/$device")
+mac=$(cat "$devicedir/$device")
 
 if [ ! -z $mac ]; then
         echo "power on" | bluetoothctl >/dev/null 2>&1

@@ -30,7 +30,7 @@ Per script: `fs-uae` (amilauncher), `bluetoothctl` (btconn), `newsboat` +
 ## Environment
 | Variable | Used by | Description |
 | --- | --- | --- |
-| `XDG_DATA_HOME` | dwmctl, btconn, xclipemoji | Base for `display-conf/`, `bluetooth-devices/` and `emoji-list`. |
+| `XDG_DATA_HOME` | dwmctl, btconn, xclipemoji | Base for `display-conf/`, `bluetooth-devices/` (one file per device, holding its MAC address) and `emoji-list`. |
 | `XDG_CONFIG_HOME` | all | Location of the dunst notification icons (`dunst/{critical,warning,info}.png`). |
 | `MODBAR_PIPE_PATH` | dwmctl, btconn, newswrap | modbar FIFO used to trigger a module refresh. |
 | `DWM_SETTINGS` | dwmctl | Shell file where `CURRENT_WALLPAPER` is persisted. |
@@ -38,9 +38,8 @@ Per script: `fs-uae` (amilauncher), `bluetoothctl` (btconn), `newsboat` +
 | `CURRENT_WALLPAPER` | dwmctl | Wallpaper restored by `-f setwp -c set`. |
 | `KB_MAP` | dwmctl | Layout passed to `setxkbmap`. |
 | `KB_AUTO_REPEAT_DELAY`, `KB_REPEAT_RATE` | dwmctl | Values passed to `xset r rate`. |
-| `BLUETOOTH_DEVICE_DIR` | btconn | Directory of files named after a device, each holding its MAC address. Must currently point at `$XDG_DATA_HOME/bluetooth-devices`. |
 | `SCREENSHOT_DIRECTORY` | screenshot | Output directory, created if missing. |
-| `PASSWORD_STORE_DIR` | xclippass | `pass` store; the entry list assumes it is named `password-store`. |
+| `PASSWORD_STORE_DIR` | xclippass | `pass` store to list entries from. |
 
 Data files: `$XDG_DATA_HOME/display-conf/` holds executable display setup
 scripts, `$XDG_DATA_HOME/emoji-list` one emoji per line, and

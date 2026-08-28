@@ -13,7 +13,7 @@ for i in dmenu fd pass; do
 done
 
 entry="$(fd . "$PASSWORD_STORE_DIR" | grep '.*.gpg$' | \
-    sed 's/.*password-store\///' | \
+    sed "s|^$PASSWORD_STORE_DIR/||" | \
     dmenu -i -c -l 15 -p "Choose entry:")"
 
 [ -z $entry ] && exit 1
